@@ -1,16 +1,33 @@
 const express = require('express');
 const { Pool } = require('pg');
+const cors = require('cors'); // Added CORS import
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS Configuration - ADD THIS SECTION
+app.use(cors({
+  origin: [
+    'https://port4004-workspaces-ws-cvxwr.eu10.applicationstudio.cloud.sap',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8080'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
+
 // Middleware
 app.use(express.json());
 
+// Handle preflight requests
+app.options('*', cors()); // Enable preflight for all routes
+
 // Database connection
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:ZMSmSyrFobRGbLJHcekILDyZyVXMOBAs@shortline.proxy.rlwy.net:46099/railway',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:ZMSmSyrFobRGbLJHcekILDyZyVXMOBAs@shortline.proxy.rlwy.net:46099/railway',
   ssl: {
     rejectUnauthorized: false
   }
@@ -196,4 +213,9 @@ app.get('/health', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  console.log('CORS enabled for:');
+  console.log('- https://port4004-workspaces-ws-cvxwr.eu10.applicationstudio.cloud.sap');
+  console.log('- http://localhost:3000');
+  console.log('- http://localhost:5173');
+  console.log('- http://localhost:8080');
 });
