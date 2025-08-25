@@ -130,26 +130,22 @@ app.put('/api/invoices/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      supplier_id,
-      invoice_number,
       sap_invoice_number,
-      invoice_date,
-      amount,
-      currency_code,
       status,
       message,
       updated_by
     } = req.body;
 
     const result = await pool.query(
-      `UPDATE catalogservice_supplierinvoice 
-       SET supplier_id = $1, invoice_number = $2, sap_invoice_number = $3, 
-           invoice_date = $4, amount = $5, currency_code = $6, status = $7, 
-           message = $8, updated_by = $9, updated_at = NOW()
-       WHERE invoice_id = $10
+      `UPDATE catalogservice_supplierinvoice
+       SET sap_invoice_number = $1, 
+           status = $2, 
+           message = $3,
+           updated_by = $4, 
+           updated_at = NOW()
+       WHERE invoice_id = $5
        RETURNING *`,
-      [supplier_id, invoice_number, sap_invoice_number, invoice_date, amount,
-       currency_code, status, message, updated_by, id]
+      [sap_invoice_number, status, message, updated_by, id]
     );
 
     if (result.rows.length === 0) {
@@ -171,6 +167,7 @@ app.put('/api/invoices/:id', async (req, res) => {
     });
   }
 });
+
 
 // DELETE invoice
 app.delete('/api/invoices/:id', async (req, res) => {
