@@ -201,6 +201,25 @@ app.delete('/api/invoices/:id', async (req, res) => {
   }
 });
 
+// DELETE all invoices
+app.delete('/api/invoices', async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM catalogservice_supplierinvoice RETURNING *');
+
+    res.json({
+      success: true,
+      message: 'All invoices deleted successfully',
+      deletedCount: result.rowCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
