@@ -126,27 +126,54 @@ app.post('/api/invoices', async (req, res) => {
 });
 
 // UPDATE invoice
-app.put('/api/invoices/:id', async (req, res) => {
+app.patch('/api/invoices/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      sap_invoice_number,
-      status,
-      message,
-      updated_by
-    } = req.body;
+    const { sap_invoice_number, status, message, updated_by } = req.body;
 
-    const result = await pool.query(
-      `UPDATE catalogservice_supplierinvoice
-       SET sap_invoice_number = $1, 
-           status = $2, 
-           message = $3,
-           updated_by = $4, 
-           updated_at = NOW()
-       WHERE invoice_id = $5
-       RETURNING *`,
-      [sap_invoice_number, status, message, updated_by, id]
-    );
+    // Collect fields dynamically
+    const updates = [];
+    const values = [];
+    let index = 1;
+
+    if (sap_invoice_number !== undefined) {
+      updates.push(`sap_invoice_number = $${index++}`);
+      values.push(sap_invoice_number);
+    }
+    if (status !== undefined) {
+      updates.push(`status = $${index++}`);
+      values.push(status);
+    }
+    if (message !== undefined) {
+      updates.push(`message = $${index++}`);
+      values.push(message);
+    }
+    if (updated_by !== undefined) {
+      updates.push(`updated_by = $${index++}`);
+      values.push(updated_by);
+    }
+
+    // If no fields provided, return error
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields to update'
+      });
+    }
+
+    // Always update updated_at
+    updates.push(`updated_at = NOW()`);
+
+    const query = `
+      UPDATE catalogservice_supplierinvoice
+      SET ${updates.join(', ')}
+      WHERE invoice_id = $${index}
+      RETURNING *;
+    `;
+
+    values.push(id);
+
+    const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
