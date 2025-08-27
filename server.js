@@ -102,6 +102,15 @@ app.post('/api/invoices', async (req, res) => {
       created_by
     } = req.body;
 
+    // Validate status
+    const allowedStatus = ['S', 'P', 'E'];
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid status. Allowed values are ${allowedStatus.join(', ')}`
+      });
+    }
+
     const result = await pool.query(
       `INSERT INTO catalogservice_supplierinvoice 
        (supplier_id, invoice_number, sap_invoice_number, invoice_date, amount, 
@@ -124,6 +133,7 @@ app.post('/api/invoices', async (req, res) => {
     });
   }
 });
+
 
 // UPDATE invoice
 app.patch('/api/invoices/:id', async (req, res) => {
