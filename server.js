@@ -12,7 +12,8 @@ app.use(cors({
     'https://port4004-workspaces-ws-cvxwr.eu10.applicationstudio.cloud.sap',
     'http://localhost:3000',
     'http://localhost:5173',
-    'http://localhost:8080'
+    'http://localhost:8080',
+    'https://aquamarine-zabaione-bfd984.netlify.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
