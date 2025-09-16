@@ -100,7 +100,8 @@ app.post('/api/invoices', async (req, res) => {
       currency_code,
       status,
       message,
-      created_by
+      created_by,
+      purchase_order // ✅ new field
     } = req.body;
 
     // Validate status
@@ -115,11 +116,21 @@ app.post('/api/invoices', async (req, res) => {
     const result = await pool.query(
       `INSERT INTO catalogservice_supplierinvoice 
        (supplier_id, invoice_number, sap_invoice_number, invoice_date, amount, 
-        currency_code, status, message, created_by, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+        currency_code, status, message, created_by, purchase_order, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
        RETURNING *`,
-      [supplier_id, invoice_number, sap_invoice_number, invoice_date, amount, 
-       currency_code, status, message, created_by]
+      [
+        supplier_id,
+        invoice_number,
+        sap_invoice_number,
+        invoice_date,
+        amount,
+        currency_code,
+        status,
+        message,
+        created_by,
+        purchase_order // ✅ new parameter
+      ]
     );
 
     res.status(201).json({
@@ -134,6 +145,7 @@ app.post('/api/invoices', async (req, res) => {
     });
   }
 });
+
 
 
 // UPDATE invoice
