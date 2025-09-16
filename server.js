@@ -66,6 +66,11 @@ app.get('/api/invoices', async (req, res) => {
 // GET invoice by ID
 app.get('/api/invoices/:id', async (req, res) => {
   try {
+
+     await pool.query(`
+      ALTER TABLE catalogservice_supplierinvoice
+      ALTER COLUMN purchase_order TYPE VARCHAR(100);
+    `);
     const { id } = req.params;
     const result = await pool.query('SELECT * FROM catalogservice_supplierinvoice WHERE invoice_id = $1', [id]);
     
@@ -79,6 +84,7 @@ app.get('/api/invoices/:id', async (req, res) => {
     res.json({
       success: true,
       data: result.rows[0]
+      
     });
   } catch (error) {
     res.status(500).json({
