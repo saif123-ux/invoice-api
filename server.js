@@ -273,29 +273,13 @@ app.delete('/api/invoices', async (req, res) => {
 });
 
 
-// CREATE TABLE API
-app.post('/api/create-new-invoice-table', async (req, res) => {
+app.get('/api/new-invoices', async (req, res) => {
   try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS newcatalogservice_supplierinvoice (
-        id SERIAL PRIMARY KEY,
-        invoiceNumber VARCHAR(50) NOT NULL,
-        supplierNumber VARCHAR(50) NOT NULL,
-        orderReference VARCHAR(100),
-        itemNumber VARCHAR(50),
-        description TEXT,
-        quantity NUMERIC(18, 2) NOT NULL DEFAULT 0,
-        unitPrice NUMERIC(18, 2) NOT NULL DEFAULT 0,
-        lineTotal NUMERIC(18, 2) GENERATED ALWAYS AS (quantity * unitPrice) STORED,
-        currency VARCHAR(10),
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      );
-    `);
-
+    const result = await pool.query('SELECT * FROM newcatalogservice_supplierinvoice ORDER BY id');
     res.json({
       success: true,
-      message: 'Table newcatalogservice_supplierinvoice created successfully with id as primary key'
+      count: result.rows.length,
+      data: result.rows
     });
   } catch (error) {
     res.status(500).json({
@@ -305,6 +289,49 @@ app.post('/api/create-new-invoice-table', async (req, res) => {
   }
 });
 
+// POST - Create new invoice line
+app.post('/api/new-invoices', async (req, res) => {
+  try {
+    const {
+      invoiceNumber,
+      supplierNumber,
+      orderReference,
+      itemNumber,
+      description,
+      quantity,
+      unitPrice,
+      currency
+    } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO newcatalogservice_supplierinvoice
+       (invoiceNumber, supplierNumber, orderReference, itemNumber, description, quantity, unitPrice, currency, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+       RETURNING *`,
+      [
+        invoiceNumber,
+        supplierNumber,
+        orderReference,
+        itemNumber,
+        description,
+        quantity,
+        unitPrice,
+        currency
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'New invoice line created successfully',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 
 // Health check endpoint
