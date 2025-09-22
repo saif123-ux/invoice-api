@@ -42,32 +42,47 @@ pool.connect(async (err, client, release) => {
   } else {
     console.log('✅ Connected to PostgreSQL database successfully!');
 
-   try {
-  // Drop & recreate catalogservice_supplierinvoice
-  await client.query(`
-    DROP TABLE IF EXISTS catalogservice_supplierinvoice CASCADE;
-    CREATE TABLE catalogservice_supplierinvoice (
-      invoice_id SERIAL PRIMARY KEY,
-      supplier_id VARCHAR(50) NOT NULL,
-      invoice_number VARCHAR(100) NOT NULL,
-      sap_invoice_number VARCHAR(100),
-      invoice_date DATE NOT NULL,
-      amount NUMERIC(15, 2) NOT NULL,
-      currency_code VARCHAR(10) NOT NULL,
-      status CHAR(1) NOT NULL CHECK (status IN ('S', 'P', 'E')),
-      message TEXT,
-      created_by VARCHAR(100) NOT NULL,
-      purchase_order VARCHAR(100),
-      created_at TIMESTAMP DEFAULT NOW(),
-      updated_at TIMESTAMP DEFAULT NOW()
-    );
-  `);
+    try {
+      // Table 1: catalogservice_supplierinvoice
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS catalogservice_supplierinvoice (
+          invoice_id SERIAL PRIMARY KEY,
+          supplier_id VARCHAR(50) NOT NULL,
+          invoice_number VARCHAR(100) NOT NULL,
+          sap_invoice_number VARCHAR(100),
+          invoice_date DATE NOT NULL,
+          amount NUMERIC(15, 2) NOT NULL,
+          currency_code VARCHAR(10) NOT NULL,
+          status CHAR(1) NOT NULL CHECK (status IN ('S', 'P', 'E')),
+          message TEXT,
+          created_by VARCHAR(100) NOT NULL,
+          purchase_order VARCHAR(100),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
 
-  console.log("✅ catalogservice_supplierinvoice dropped & recreated successfully");
-} catch (tableErr) {
-  console.error("❌ Error recreating table:", tableErr.message);
-}
+      // Table 2: newcatalogservice_supplierinvoice
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS newcatalogservice_supplierinvoice (
+          id SERIAL PRIMARY KEY,
+          invoiceNumber VARCHAR(100) NOT NULL,
+          supplierNumber VARCHAR(50) NOT NULL,
+          orderReference VARCHAR(100),
+          itemNumber VARCHAR(50),
+          description TEXT,
+          quantity NUMERIC(15, 2),
+          unitPrice NUMERIC(15, 2),
+          currency VARCHAR(10),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+      `);
 
+      console.log("✅ Tables ensured: catalogservice_supplierinvoice & newcatalogservice_supplierinvoice");
+    } catch (tableErr) {
+      console.error("❌ Error creating tables:", tableErr.message);
+    }
 
     release();
   }
