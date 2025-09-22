@@ -62,6 +62,21 @@ pool.connect(async (err, client, release) => {
         );
       `);
 
+      // ✅ Ensure updated_by column exists
+      await client.query(`
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'catalogservice_supplierinvoice'
+                AND column_name = 'updated_by'
+            ) THEN
+                ALTER TABLE catalogservice_supplierinvoice
+                ADD COLUMN updated_by VARCHAR(100);
+            END IF;
+        END$$;
+      `);
+
       // Table 2: newcatalogservice_supplierinvoice
       await client.query(`
         CREATE TABLE IF NOT EXISTS newcatalogservice_supplierinvoice (
@@ -87,6 +102,7 @@ pool.connect(async (err, client, release) => {
     release();
   }
 });
+
 
 
 // Routes
