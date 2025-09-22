@@ -423,6 +423,55 @@ app.get('/api/new-invoices/:id', async (req, res) => {
 });
 
 
+// DELETE single new invoice by ID
+app.delete('/api/new-invoices/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      'DELETE FROM newcatalogservice_supplierinvoice WHERE id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'New invoice not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'New invoice deleted successfully',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// DELETE all new invoices
+app.delete('/api/new-invoices', async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM newcatalogservice_supplierinvoice RETURNING *');
+
+    res.json({
+      success: true,
+      message: 'All new invoices deleted successfully',
+      deletedCount: result.rowCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {
