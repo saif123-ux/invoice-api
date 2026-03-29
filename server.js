@@ -28,7 +28,7 @@ app.options('*', cors()); // Enable preflight for all routes
 
 // Database connection
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:ZMSmSyrFobRGbLJHcekILDyZyVXMOBAs@shortline.proxy.rlwy.net:46099/railway',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:hNLdoJkYxAZWrZoanMMtaseLWgfHGgmi@hopper.proxy.rlwy.net:56315/railway',
   ssl: {
     rejectUnauthorized: false
   }
